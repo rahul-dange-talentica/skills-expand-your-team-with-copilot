@@ -8,6 +8,32 @@ document.addEventListener("DOMContentLoaded", () => {
   const activityInput = document.getElementById("activity");
   const closeRegistrationModal = document.querySelector(".close-modal");
 
+  // Dark mode toggle
+  const darkModeToggle = document.getElementById("dark-mode-toggle");
+  const darkModeIcon = document.getElementById("dark-mode-icon");
+
+  function applyDarkMode(enabled) {
+    if (enabled) {
+      document.body.classList.add("dark-mode");
+      if (darkModeIcon) darkModeIcon.textContent = "☀️";
+    } else {
+      document.body.classList.remove("dark-mode");
+      if (darkModeIcon) darkModeIcon.textContent = "🌙";
+    }
+  }
+
+  // Initialize dark mode from localStorage
+  const savedDarkMode = localStorage.getItem("darkMode") === "true";
+  applyDarkMode(savedDarkMode);
+
+  if (darkModeToggle) {
+    darkModeToggle.addEventListener("click", () => {
+      const isDark = document.body.classList.contains("dark-mode");
+      applyDarkMode(!isDark);
+      localStorage.setItem("darkMode", String(!isDark));
+    });
+  }
+
   // Search and filter elements
   const searchInput = document.getElementById("activity-search");
   const searchButton = document.getElementById("search-button");
