@@ -568,6 +568,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `
         }
+        <button class="social-share-btn" data-activity="${name}" title="Share this activity">🔗 Share</button>
       </div>
     `;
 
@@ -586,6 +587,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    // Add click handler for share button
+    const shareBtn = activityCard.querySelector(".social-share-btn");
+    shareBtn.addEventListener("click", () => shareActivity(name, details));
 
     activitiesList.appendChild(activityCard);
   }
@@ -797,6 +802,75 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     );
+  }
+
+  // Share activity using Web Share API or fallback popup
+  function shareActivity(name, details) {
+    const formattedSchedule = formatSchedule(details);
+    const shareText = `Check out this activity at Mergington High School: ${name} - ${details.description} | Schedule: ${formattedSchedule}`;
+    const shareUrl = window.location.href;
+
+    if (navigator.share) {
+      navigator.share({
+        title: `${name} - Mergington High School`,
+        text: shareText,
+        url: shareUrl,
+      }).catch((error) => {
+        if (error.name !== "AbortError") {
+          console.error("Error sharing:", error);
+        }
+      });
+    } else {
+      showSharePopup(name, shareText, shareUrl);
+    }
+  }
+
+  // Show share popup with social platform links
+  function showSharePopup(name, shareText, shareUrl) {
+    const encodedText = encodeURIComponent(shareText);
+    const encodedUrl = encodeURIComponent(shareUrl);
+
+    let sharePopup = document.getElementById("share-popup");
+    if (!sharePopup) {
+      sharePopup = document.createElement("div");
+      sharePopup.id = "share-popup";
+      sharePopup.className = "modal hidden";
+      sharePopup.innerHTML = `
+        <div class="modal-content">
+          <span class="close-share-popup">&times;</span>
+          <h3>Share <span id="share-activity-name"></span></h3>
+          <div class="share-options">
+            <a id="share-twitter" class="share-platform-btn share-twitter" target="_blank" rel="noopener noreferrer">𝕏 X</a>
+            <a id="share-facebook" class="share-platform-btn share-facebook" target="_blank" rel="noopener noreferrer">📘 Facebook</a>
+            <a id="share-whatsapp" class="share-platform-btn share-whatsapp" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(sharePopup);
+
+      sharePopup.querySelector(".close-share-popup").addEventListener("click", () => {
+        sharePopup.classList.remove("show");
+        setTimeout(() => sharePopup.classList.add("hidden"), 300);
+      });
+
+      sharePopup.addEventListener("click", (event) => {
+        if (event.target === sharePopup) {
+          sharePopup.classList.remove("show");
+          setTimeout(() => sharePopup.classList.add("hidden"), 300);
+        }
+      });
+    }
+
+    document.getElementById("share-activity-name").textContent = name;
+    sharePopup.querySelector("#share-twitter").href =
+      `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
+    sharePopup.querySelector("#share-facebook").href =
+      `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedText}`;
+    sharePopup.querySelector("#share-whatsapp").href =
+      `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
+
+    sharePopup.classList.remove("hidden");
+    setTimeout(() => sharePopup.classList.add("show"), 10);
   }
 
   // Show message function
